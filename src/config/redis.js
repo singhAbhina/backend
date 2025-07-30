@@ -37,7 +37,7 @@ const redisClient = createClient({
     socket: {
         host: 'redis-19027.c83.us-east-1-2.ec2.redns.redis-cloud.com',
         port: 19027,
-        tls: true
+        tls: {}
     }
 });
 
