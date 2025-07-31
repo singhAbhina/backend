@@ -68,11 +68,19 @@ const createProblem = async (req,res)=>{
       //  console.log(testResult);
 console.log("Test Result Response:", testResult);
 
-       for(const test of testResult){
-        if(test.status_id!=3){
-         return res.status(400).send("Error Occured");
-        }
-       }
+     for(const test of testResult){
+    if(test.status_id != 3){
+        console.log("❌ Test Case Failed:", test);
+        return res.status(400).send({
+            message: "Test Case Failed",
+            status: test.status.description,
+            compile_output: test.compile_output,
+            stderr: test.stderr,
+            stdout: test.stdout
+        });
+    }
+}
+
 
       }
 
