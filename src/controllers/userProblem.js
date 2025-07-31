@@ -65,7 +65,8 @@ const createProblem = async (req,res)=>{
         }
 
 
-       console.log(testResult);
+      //  console.log(testResult);
+console.log("Test Result Response:", testResult);
 
        for(const test of testResult){
         if(test.status_id!=3){
