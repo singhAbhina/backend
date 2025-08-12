@@ -16,14 +16,26 @@ const cors = require('cors')
 
 app.use(cookieParser());
 
+// Updated CORS configuration for production deployment
 app.use(cors({
-    origin: 'https://frontend-64pi.onrender.com',
-    // origin: 'http://localhost:5173',
-    credentials: true ,
+    origin: [
+        'https://frontend-64pi.onrender.com',
+        'http://localhost:5173', // Keep local development
+        process.env.FRONTEND_URL // Add environment variable for flexibility
+    ].filter(Boolean), // Remove undefined values
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['Set-Cookie']
 }))
 
 app.use(express.json());
 
+// Add error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+});
 
 app.use('/user',authRouter);
 app.use('/problem',problemRouter);

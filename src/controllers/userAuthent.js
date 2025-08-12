@@ -9,9 +9,11 @@ const Submission = require("../models/submission");
 const setAuthCookie = (res, token) => {
     res.cookie('token', token, {
         httpOnly: true,
-        secure: true,        // Always true for production HTTPS
-        sameSite: 'None',    // Required for cross-origin
+        secure: process.env.NODE_ENV === 'production', // Only true in production
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
         maxAge: 60 * 60 * 1000,  // 1 hour
+        domain: process.env.NODE_ENV === 'production' ? undefined : undefined, // Let browser handle domain
+        path: '/'
     });
 };
 
@@ -19,9 +21,10 @@ const setAuthCookie = (res, token) => {
 const clearAuthCookie = (res) => {
     res.cookie('token', '', {
         httpOnly: true,
-        secure: true,
-        sameSite: 'None',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
         expires: new Date(0),
+        path: '/'
     });
 };
 
@@ -30,6 +33,12 @@ const register = async (req, res) => {
     try {
         validate(req.body);
         const { firstName, emailId, password } = req.body;
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ emailId });
+        if (existingUser) {
+            return res.status(400).json({ error: "User with this email already exists" });
+        }
 
         req.body.password = await bcrypt.hash(password, 10);
         req.body.role = 'user';
@@ -53,10 +62,12 @@ const register = async (req, res) => {
 
         res.status(201).json({
             user: reply,
-            message: "Logged in Successfully",
+            message: "User registered successfully",
+            token: token // Also send token in response for frontend storage
         });
     } catch (err) {
-        res.status(400).send("Error: " + err);
+        console.error('Registration error:', err);
+        res.status(400).json({ error: err.message || "Registration failed" });
     }
 };
 
@@ -92,9 +103,11 @@ const login = async (req, res) => {
         res.status(201).json({
             user: reply,
             message: "Logged in Successfully",
+            token: token // Also send token in response for frontend storage
         });
     } catch (err) {
-        res.status(401).send("Error: " + err);
+        console.error('Login error:', err);
+        res.status(401).json({ error: err.message || "Login failed" });
     }
 };
 
