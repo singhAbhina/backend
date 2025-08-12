@@ -50,8 +50,13 @@ const InitalizeConnection = async ()=>{
         await Promise.all([main(),redisClient.connect()]);
         console.log("DB Connected");
         
-        app.listen(process.env.PORT, ()=>{
-            console.log("Server listening at port number: "+ process.env.PORT);
+        const port = process.env.PORT || 3000;
+        const host = '0.0.0.0'; // Bind to all interfaces
+        
+        app.listen(port, host, ()=>{
+            console.log(`🚀 Server running on http://${host}:${port}`);
+            console.log(`🌐 Local access: http://localhost:${port}`);
+            console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
         })
 
     }
