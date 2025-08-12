@@ -40,10 +40,16 @@ const register = async (req, res) => {
             return res.status(400).json({ error: "User with this email already exists" });
         }
 
-        req.body.password = await bcrypt.hash(password, 10);
-        req.body.role = 'user';
+        // Prepare user data with proper defaults
+        const userData = {
+            firstName,
+            emailId,
+            password: await bcrypt.hash(password, 10),
+            role: 'user',
+            problemSolved: [] // Explicitly set to empty array
+        };
 
-        const user = await User.create(req.body);
+        const user = await User.create(userData);
 
         const token = jwt.sign(
             { _id: user._id, emailId: emailId, role: 'user' },
@@ -67,6 +73,15 @@ const register = async (req, res) => {
         });
     } catch (err) {
         console.error('Registration error:', err);
+        
+        // Handle MongoDB duplicate key errors specifically
+        if (err.code === 11000) {
+            if (err.keyPattern?.emailId) {
+                return res.status(400).json({ error: "User with this email already exists" });
+            }
+            return res.status(400).json({ error: "Duplicate key error. Please try again." });
+        }
+        
         res.status(400).json({ error: err.message || "Registration failed" });
     }
 };
